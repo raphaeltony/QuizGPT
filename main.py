@@ -6,25 +6,8 @@ openai.api_key = "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"
 start_sequence = "\nAI:"
 restart_sequence = "\nHuman: "
 
-# pdf_data = \
-# '''
-# Advantages of Microcontrollers
-# ● Due to the integration of all functional blocks in a single chip microcontroller IC,
-# the size of the control board and power consumption are reduced, system
-# reliability increased and provides more flexibility.
-# ● The microcontroller is able to interface additional RAM, ROM and I/O ports for
-# additional peripherals & memory and better software security.
-# ● Once microcontrollers are programmed then they can be reprogrammed with
-# some difficulty, so reusability exist.
-# ● At the same time many tasks can be performed, so human effort can be saved.
-# ● Easy trouble shooting &maintenance.
-# ● Integrated circuits, such as the microcontroller, are much more dependable
-# than relays. Before microcontrollers, control circuitry relied on many
-# electromechanical relays and timers to control the system.
-# '''
-
+# splitting the pdf data to smaller chunks
 def chunk_string(text, max_chunk_size):
-    print(len(text))
     chunks = []
     start_index = 0
     next_space_index = 0
@@ -45,29 +28,54 @@ def chunk_string(text, max_chunk_size):
 
 
 def generate_questions(input_chunks):
-    # max_chunk_size = 100
-    # input_chunks = [input_text[i:i+max_chunk_size] for i in range(0, len(input_text), max_chunk_size)]
-    # generated_questions = []
-    
     for chunk in input_chunks:
         prompt_text = \
             f'''
-            You are a chatbot that creates quizzes for the user. Based on the input that is fed to you, you test the user in an interactive way. There should be a minimum of 5 questions and a maximum of 10. All the questions are in multiple-choice format. Wait for the user to answer before moving on to the next question.  You only reveal the answer after the user has responded. After responding to the user's answer, move to the next question immediately. 
+            You are a chatbot that creates quizzes for the human. Based on the input that is fed to you, you test the human in an interactive way. You reveal the answer only after the human has responded. In case the human makes an error, you show the correct answer to the human. You do not ask the same question again. All the questions are in multiple-choice format and only one choice is correct. There should be a minimum of 5 questions and a maximum of 20. Wait for the human to answer before moving on to the next question.  You are truthful and friendly.
             ```
             INPUT:
+            Neil Armstrong, Buzz Aldrin, Michael Collins, and Yuri Gagarin were all astronauts. On July 20, 1969, Neil Armstrong was the first to step onto the moon followed by Buzz Aldrin.
+            \nThe skin is the biggest organ in the body.
             {chunk}
             ```
             Human: Hi, can you test me based on the input given above ?
             AI: Sure ! Let's start the test.
-            AI: 
+            
+            AI: Question: Who was the first man to walk on the moon?
+            A) Neil Armstrong
+            B) Buzz Aldrin
+            C) Michael Collins
+            D) Yuri Gagarin
+
+            Please select your answer by typing the letter corresponding to the correct answer (e.g. A, B, C or D) below:
+            Human: a
+
+            AI: Your answer is: A
+            Correct! Neil Armstrong was the first man to walk on the moon on July 20, 1969. 
+
+            Here's another question:
+
+            AI: Question: What is the largest organ in the human body?
+            A) Liver
+            B) Heart
+            C) Skin
+            D) Lungs
+
+            Please select your answer by typing the letter corresponding to the correct answer (e.g. A, B, C or D) below:
+            Human: b
+
+            AI: Your answer is: B
+            Incorrect! Skin is the largest organ in the human body
+
+            Here's another question:
             '''
         
-        for i in range(4):
+        for i in range(10):
             
             response = openai.Completion.create(
             model="text-davinci-003",
             prompt=prompt_text,
-            temperature=0.7,
+            temperature=0.8,
             max_tokens=150,
             top_p=1,
             frequency_penalty=0,
@@ -76,25 +84,9 @@ def generate_questions(input_chunks):
             )
             question = response.choices[0].text.strip()
             print(question)
-            resp = input()
-            prompt_text = prompt_text +question + "\nHuman: "+resp + "\nAI: "
+            resp = input()      #user response
+            prompt_text = prompt_text +question + "\nHuman: "+resp + "\nAI: "   #appending question and response to prompt for future context
 
-            # giving answer feedback
-            # response = openai.Completion.create(
-            # model="text-davinci-003",
-            # prompt=prompt_text,
-            # temperature=0.7,
-            # max_tokens=150,
-            # top_p=1,
-            # frequency_penalty=0,
-            # presence_penalty=0.5,
-            # stop=["Human:"]
-            # )
-            # question = response.choices[0].text.strip()
-            # print(question)
-
-        # generated_questions.append(question)
-    # return generated_questions
 
 def get_pdf_data(filename):
     pdf = pdfplumber.open(filename)
@@ -109,9 +101,9 @@ def get_pdf_data(filename):
     return text
 
 
-# data = generate_questions(prompt)
+
 pdf_data = get_pdf_data("Module 5.pdf")
-chunked = chunk_string(pdf_data,4000)
+chunked = chunk_string(pdf_data,1000)
 generate_questions(chunked)
 
 
