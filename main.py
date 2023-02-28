@@ -1,7 +1,7 @@
 import openai
 import pdfplumber
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 start_sequence = "\nAI:"
 restart_sequence = "\nHuman: "
