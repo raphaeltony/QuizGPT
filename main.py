@@ -1,7 +1,10 @@
 import openai
 import pdfplumber
 
-openai.api_key = "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"
+
+PDF_FILE = "<filename.pdf>"
+CHUNK_SIZE = 1000                           # To split your text file if it is too large (MAX:4000)  
+openai.api_key = "<personal open api key>"
 
 start_sequence = "\nAI:"
 restart_sequence = "\nHuman: "
@@ -102,8 +105,8 @@ def get_pdf_data(filename):
 
 
 
-pdf_data = get_pdf_data("Module 5.pdf")
-chunked = chunk_string(pdf_data,1000)
+pdf_data = get_pdf_data(PDF_FILE)
+chunked = chunk_string(pdf_data,CHUNK_SIZE)
 generate_questions(chunked)
 
 

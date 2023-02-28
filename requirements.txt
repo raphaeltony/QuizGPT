@@ -1,0 +1,3 @@
+openai==0.26.5
+pdfplumber==0.8.0
+
