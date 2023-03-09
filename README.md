@@ -3,7 +3,7 @@
 A CLI chatbot that creates an interactive quiz based on the contents of the PDF document you pass to it. It runs on Python and uses GPT-3 and the OpenAI API.
 
 > The program is prone to hallucinate and may not always give 100% accurate answers. Use it for educational and entertainment purposes only.
-
+> The same has been implemented using the ChatGPT API. Switch to branch `chatgptapi`
 ## How the program works
 
 - The Python program fetches the data from a pdf you choose.
