@@ -1,10 +1,8 @@
 import openai
 import pdfplumber
 
-openai.api_key = "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"
-
-start_sequence = "\nAI:"
-restart_sequence = "\nHuman: "
+openai.api_key = "<your-api-key>"
+N = 5
 
 # splitting the pdf data to smaller chunks
 def chunk_string(text, max_chunk_size):
@@ -31,61 +29,32 @@ def generate_questions(input_chunks):
     for chunk in input_chunks:
         prompt_text = \
             f'''
-            You are a chatbot that creates quizzes for the human. Based on the input that is fed to you, you test the human in an interactive way. You reveal the answer only after the human has responded. In case the human makes an error, you show the correct answer to the human. You do not ask the same question again. All the questions are in multiple-choice format and only one choice is correct. There should be a minimum of 5 questions and a maximum of 20. Wait for the human to answer before moving on to the next question.  You are truthful and friendly.
-            ```
+            You conduct quizzes for the user. Based on the input that is fed to you, you test the user in the form of a Multiple Choice Question quiz. You reveal the answer only after the user has responded. In case the user makes an error, you show the correct answer to the user. You do not ask the same question again. All the questions are in multiple-choice format and only one choice is correct. There should be a minimum of 5 questions and a maximum of 20. You are truthful and friendly.
             INPUT:
-            Neil Armstrong, Buzz Aldrin, Michael Collins, and Yuri Gagarin were all astronauts. On July 20, 1969, Neil Armstrong was the first to step onto the moon followed by Buzz Aldrin.
-            \nThe skin is the biggest organ in the body.
+            ```
             {chunk}
             ```
-            Human: Hi, can you test me based on the input given above ?
-            AI: Sure ! Let's start the test.
-            
-            AI: Question: Who was the first man to walk on the moon?
-            A) Neil Armstrong
-            B) Buzz Aldrin
-            C) Michael Collins
-            D) Yuri Gagarin
-
-            Please select your answer by typing the letter corresponding to the correct answer (e.g. A, B, C or D) below:
-            Human: a
-
-            AI: Your answer is: A
-            Correct! Neil Armstrong was the first man to walk on the moon on July 20, 1969. 
-
-            Here's another question:
-
-            AI: Question: What is the largest organ in the human body?
-            A) Liver
-            B) Heart
-            C) Skin
-            D) Lungs
-
-            Please select your answer by typing the letter corresponding to the correct answer (e.g. A, B, C or D) below:
-            Human: b
-
-            AI: Your answer is: B
-            Incorrect! Skin is the largest organ in the human body
-
-            Here's another question:
             '''
+        msgs = [
+                {"role": "system", "content": prompt_text },
+                {"role": "user", "content": "Start the quiz"}
+            ]
         
-        for i in range(10):
+        for i in range(N):
             
-            response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=prompt_text,
-            temperature=0.8,
-            max_tokens=150,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0.5,
-            stop=["Human:"]
+            response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=msgs
             )
-            question = response.choices[0].text.strip()
+            question = ''
+            for choice in response.choices:
+                question += choice.message.content
+            if(i==N-1):
+                print("Last question in the chunk")
             print(question)
             resp = input()      #user response
-            prompt_text = prompt_text +question + "\nHuman: "+resp + "\nAI: "   #appending question and response to prompt for future context
+            msgs.append({"role": "assistant", "content": f"{question}"})
+            msgs.append({"role": "user", "content": f"{resp}"})
 
 
 def get_pdf_data(filename):
